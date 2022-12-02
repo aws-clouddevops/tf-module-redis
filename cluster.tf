@@ -1,7 +1,7 @@
 # Creates redis (Elastic Cache) Cluster
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id           = "cluster-${var.ENV}"
+  cluster_id           = "redis-${var.ENV}"
   engine               = "redis"
   node_type            = "cache.t3.small"
   num_cache_nodes      = 1       # An ideal prod cluster should have 3 nodes
@@ -33,13 +33,21 @@ resource "aws_security_group" "allow_redis" {
   vpc_id      = data.terraform_remote_state.vpc.outputs.VPC_ID
 
   ingress {
-    description      = "redis port from def vpc"
+    description      = "Allow Redis Connection from default vpc"
     from_port        = 6379
     to_port          = 6379
     protocol         = "tcp"
     cidr_blocks      = [data.terraform_remote_state.vpc.outputs.DEFAULT_VPC_CIDR]
   }
 
+  ingress {
+    description      = "Allow redis Connection from Private vpc"
+    from_port        = 6379
+    to_port          = 6379
+    protocol         = "tcp"
+    cidr_blocks      = [data.terraform_remote_state.vpc.outputs.VPC_CIDR]
+  }
+  
   egress {
     from_port        = 0
     to_port          = 0
